@@ -1,0 +1,23 @@
+substitutions:
+  _BLOG_IMAGE_NAME: skatesguru
+steps:
+- id: my-blog-cache-image
+  name: gcr.io/cloud-builders/docker
+  entrypoint: "/bin/bash"
+  args:
+   - "-c"
+   - |
+     docker pull asia.gcr.io/$PROJECT_ID/$_BLOG_IMAGE_NAME:$BRANCH_NAME || exit 0
+  waitFor: ["-"]
+- id: skatesguru-build-image
+  name: gcr.io/cloud-builders/docker
+  args: [
+    "build",
+    "--cache-from", "asia.gcr.io/$PROJECT_ID/$_BLOG_IMAGE_NAME:$BRANCH_NAME",
+    "-t", "gcr.io/$PROJECT_ID/$_BLOG_IMAGE_NAME:$BRANCH_NAME",
+    "-t", "gcr.io/$PROJECT_ID/$_BLOG_IMAGE_NAME:$SHORT_SHA",
+    "docker/skatesguru/",
+  ]
+  waitFor: ["skatesguru-cache-image"]
+images:
+- asia.gcr.io/$PROJECT_ID/$_BLOG_IMAGE_NAME:$SHORT_SHA
